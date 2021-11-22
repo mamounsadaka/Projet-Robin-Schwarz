@@ -12,23 +12,23 @@ D
 
 #cas
 cas
-4
+5
 
 
 #geometry parameters
 Nx
-60
+80
 Ny
-60
+80
 Lx
 1.
 Ly
 1.
 # nb de mailles contenue dans le recouvrement
 n
-10
+5
 # paramètres de conditions Neumann-Dirichlet
 alpha
 0
 beta
-1
+1.

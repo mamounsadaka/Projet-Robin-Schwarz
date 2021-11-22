@@ -95,7 +95,7 @@ void Problem::Construct_F(int cas, double t, std::vector<double> &test)
 	{
 		for (int j = 0; j < Nx_; j++)
 		{
-			F_[i * Nx_ + j] = (sol_[i * Nx_ + j] + deltat_ * functions_->Source_term(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t + deltat_, cas));
+			F_[i * Nx_ + j] = (sol_[i * Nx_ + j] + deltat_ * functions_->Source_term(procID_ * deltax_ * (Nx_+1.- n_) + (j + 1) * deltax_, (i+1.0) * deltay_, t + deltat_, cas));
 		}
 	}
 
@@ -116,48 +116,74 @@ void Problem::Construct_Bd(int cas, double t)
 		{
 			if (i == 0 && j == 0)
 			{
-				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+				if(procID_==0)
+				{
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
+				else {
+					Bd_[i * Nx_ + j] = D_ * stencil1_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
 			}
 			if (i == 0 && j != 0 && j != Nx_ - 1)
 			{
-				Bd_[i * Nx_ + j] = functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);//D_*functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) +
 			}
 			if (i == 0 && j == Nx_ - 1)
 			{
-				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+				if (procID_ != Np_ - 1)
+				{
+					Bd_[i * Nx_ + j] = D_ * stencil2_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
+				else
+				{
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
 			}
 			if (i == Ny_ - 1 && j == 0)
 			{
-				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+				if(procID_!=0)
+				{
+					Bd_[i * Nx_ + j] = D_ * stencil1_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
+				else {
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
 			}
 			if (i == Ny_ - 1 && j == Nx_ - 1)
 			{
-				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+				if (procID_ != Np_ - 1)
+				{
+					Bd_[i * Nx_ + j] = D_ * stencil2_[i] / (deltax_ * deltax_)  + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
+				else
+				{
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				}
 			}
 			if (i == Ny_ - 1 && j != 0 && j != Nx_ - 1)
 			{
-				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 			}
 			if (j == 0 && i != 0 && i != Ny_ - 1)
 			{
 				if (procID_ == 0)
 				{
-					Bd_[i * Nx_ + j] = functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] =D_*functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) ;//+ D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
 				}
 				else
 				{
-					Bd_[i * Nx_ + j] = stencil1_[i - 1] / (deltax_ * deltax_);
+					Bd_[i * Nx_ + j] = D_*stencil1_[i] / (deltax_ * deltax_);
 				}
 			}
 			if (j == Nx_ - 1 && i != 0 && i != Ny_ - 1)
 			{
 				if (procID_ == Np_ - 1)
 				{
-					Bd_[i * Nx_ + j] = 0;//functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_*functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) ;//+ D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
 				}
 				else
 				{
-					Bd_[i * Nx_ + j] = stencil2_[i - 1] / (deltax_ * deltax_);
+					Bd_[i * Nx_ + j] = D_*stencil2_[i] / (deltax_ * deltax_);
 				}
 			}
 		}
@@ -200,36 +226,35 @@ std::vector<double> Problem::get_sol()
 }
 std::vector<double> Problem::getLeftStencil()
 {
-	std::vector<double> x(Ny_ - 2);
-	for (int i = 1; i < Ny_ - 1; i++)
+	std::vector<double> x(Ny_);
+	for (int i = 1; i < Ny_; i++)
 
 	{
 		if (alpha_ != 0)
 		{
-			x[i - 1] = sol_[i * Nx_ + n_ ] - sol_[i * Nx_ + n_-2] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ + n_ - 1];
+			x[i] = sol_[i * Nx_ + n_] - sol_[i * Nx_ + n_ - 2] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ + n_ - 1];
 		}
 		else
 		{
 			//x[i - 1] = sol_[i * Nx_ + n_];
-			x[i - 1] = sol_[i * Nx_ + n_-1];
+			x[i] = sol_[i * Nx_ + n_ - 1];
 		}
 	}
 	return x;
 }
 std::vector<double> Problem::getRightStencil()
 {
-	std::vector<double> x(Ny_ - 2);
-	for (int i = 1; i < Ny_ - 1; i++)
+	std::vector<double> x(Ny_);
+	for (int i = 0; i < Ny_; i++)
 	{
 		if (alpha_ != 0)
 		{
 			//x[i - 1] = sol_[i * Nx_+Nx_-n_-1] - sol_[i * Nx_+Nx_+1-n_] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ +Nx_-n_];
-			x[i - 1] = sol_[i * Nx_+Nx_-n_-1] - sol_[i * Nx_+Nx_+1-n_] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ +Nx_-n_];
-
+			x[i] = sol_[i * Nx_ + Nx_ - n_ - 1] - sol_[i * Nx_ + Nx_ + 1 - n_] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ + Nx_ - n_];
 		}
 		else
 		{
-			x[i - 1] = sol_[i * Nx_ + Nx_  - n_];
+			x[i] = sol_[i * Nx_ + Nx_ - n_];
 			//x[i - 1] = sol_[i * Nx_ + Nx_ - 1 - n_];
 		}
 	}
