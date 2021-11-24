@@ -185,19 +185,19 @@ int main(int argc, char **argv)
   double recouv = n * domXsize / (Nx + 1);
   printf("%f\n", domXsize);
   bool Converged = false;
-  // Initialisation de stencil
-  if (cas == 5)
-  {
-    for (int i = 0; i < stencil1.size(); i++)
-    {
-      stencil1[i] = sin(rank * (domXsize - recouv)) + cos((i + 1) * deltay);
-      stencil2[i] = sin((rank + 1) * domXsize - rank * recouv) + cos((i + 1) * deltay);
-    }
-  }
-  if (cas == 6)
-  {
-    //TO DO
-  }
+  // // Initialisation de stencil
+  // if (cas == 5)
+  // {
+  //   for (int i = 0; i < stencil1.size(); i++)
+  //   {
+  //     stencil1[i] = sin(rank * (domXsize - recouv)) + cos((i + 1) * deltay);
+  //     stencil2[i] = sin((rank + 1) * domXsize - rank * recouv) + cos((i + 1) * deltay);
+  //   }
+  // }
+  // if (cas == 6)
+  // {
+  //   //TO DO
+  // }
   // Déclaration d'une classe gc pour pouvoir utiliser les ops sur matrices/vecteurs
   std::vector<std::vector<double>> B(3);
   std::vector<double> g(Nx * Ny, 4.);
@@ -216,20 +216,20 @@ int main(int argc, char **argv)
     // Exception du  cas à 1 proc
     if (Np == 1)
     {
-      // Sauvegarde de la solution
-      SolFile.open("Sol" + std::to_string(rank) + ".dat");
-      SolFile << "# x      y    u(x,y)" << endl;
-      for (int i = 0; i < Ny; i++)
-      {
+      //   // Sauvegarde de la solution
+      //   SolFile.open("Sol" + std::to_string(rank) + ".dat");
+      //   SolFile << "# x      y    u(x,y)" << endl;
+      //   for (int i = 0; i < Ny; i++)
+      //   {
 
-        //for (int k = rank * (n / Np); k < Nx - (Np - rank - 1) * (n / Np); k++)
-        for (int k = 0; k < Nx; k++)
-        {
-          double a = rank * deltax * (Nx - n) + (k + 1) * deltax, b = (i + 1) * deltay;
-          SolFile << a << " " << b << " " << abs((y[i * Nx + k] - a * (1 - a) * b * (1 - b)) / (a * (1 - a) * b * (1 - b))) << endl;
-        }
-      }
-      SolFile.close();
+      //     //for (int k = rank * (n / Np); k < Nx - (Np - rank - 1) * (n / Np); k++)
+      //     for (int k = 0; k < Nx; k++)
+      //     {
+      //       double a = rank * deltax * (Nx - n) + (k + 1) * deltax, b = (i + 1) * deltay;
+      //       SolFile << a << " " << b << " " << abs((y[i * Nx + k] - a * (1 - a) * b * (1 - b)) / (a * (1 - a) * b * (1 - b))) << endl;
+      //     }
+      //   }
+      //   SolFile.close();
       Converged = true;
       break;
     }
@@ -302,39 +302,31 @@ int main(int argc, char **argv)
         stencil2 = stencilR;
       }
     }
+  }
 
-    // Sauvegarde de la solution
-    SolFile.open("Sol" + std::to_string(rank) + ".dat");
-    SolFile << "# x      y    u(x,y)" << endl;
-    for (int i = 0; i < Ny; i++)
+  // Fin du chrono
+  double t2 = MPI_Wtime();
+  double s = t2 - t1;
+  MPI_Allreduce(&s, &s, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  SpeedupFile.close();
+  // Sauvegarde de la solution
+  SolFile.open("Sol" + std::to_string(rank) + ".dat");
+  SolFile << "# x      y    u(x,y)" << endl;
+  for (int i = 0; i < Ny; i++)
+  {
+
+    //for (int k = rank * (n / Np); k < Nx - (Np - rank - 1) * (n / Np); k++)
+    for (int k = 0; k < Nx; k++)
     {
-
-      //for (int k = rank * (n / Np); k < Nx - (Np - rank - 1) * (n / Np); k++)
-      for (int k = 0; k < Nx; k++)
-      {
-        double a = rank * deltax * (Nx+1- n) + (k + 1) * deltax, b = (i + 1) * deltay;
-        SolFile << a << " " << b << " " << y[i * Nx + k] << endl;//abs((y[i * Nx + k] - a * (1 - a) * b * (1 - b)) / (a * (1 - a) * b * (1 - b))) << endl;
-      }
-    }
-    SolFile.close();
-
-    // Fin du chrono
-    double t2 = MPI_Wtime();
-    double s = t2 - t1;
-    MPI_Allreduce(&s, &s, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-    // Sauvegarder le speedup
-    if (rank == 0)
-    {
-
-      SpeedupFile << n << " " << 6.92 / s << endl;
+      double a = rank * deltax * (Nx + 1 - n) + (k + 1) * deltax, b = (i + 1) * deltay;
+      SolFile << a << " " << b << " " << y[i * Nx + k] << endl; //abs((y[i * Nx + k] - a * (1 - a) * b * (1 - b)) / (a * (1 - a) * b * (1 - b))) << endl;
     }
   }
-  SpeedupFile.close();
-  // Affichage du résultat
-  // std::cout << "-------------------------------------------------" << std::endl;
-  // cout << "Cela a pris " << (t2 - t1) << " seconds"
-  //      << "pour le proc " << rank << endl;
+  SolFile.close();
+  //Affichage du résultat
+  std::cout << "-------------------------------------------------" << std::endl;
+  cout << "Cela a pris " << s << " seconds"
+       << "dans le parallèl " << endl;
   MPI_Finalize();
   return 0;
 }

@@ -118,57 +118,57 @@ void Problem::Construct_Bd(int cas, double t)
 			{
 				if(procID_==0)
 				{
-					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 				else {
-					Bd_[i * Nx_ + j] = D_ * stencil1_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * stencil1_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 			}
 			if (i == 0 && j != 0 && j != Nx_ - 1)
 			{
-				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);//D_*functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltax_ * deltax_) +
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);//D_*functions_->Dirichlet_Function0(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t, cas) / (deltax_ * deltax_) +
 			}
 			if (i == 0 && j == Nx_ - 1)
 			{
 				if (procID_ != Np_ - 1)
 				{
-					Bd_[i * Nx_ + j] = D_ * stencil2_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * stencil2_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 				else
 				{
-					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 			}
 			if (i == Ny_ - 1 && j == 0)
 			{
 				if(procID_!=0)
 				{
-					Bd_[i * Nx_ + j] = D_ * stencil1_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * stencil1_[i] / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 				else {
-					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 			}
 			if (i == Ny_ - 1 && j == Nx_ - 1)
 			{
 				if (procID_ != Np_ - 1)
 				{
-					Bd_[i * Nx_ + j] = D_ * stencil2_[i] / (deltax_ * deltax_)  + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * stencil2_[i] / (deltax_ * deltax_)  + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 				else
 				{
-					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function0(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) + D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 				}
 			}
 			if (i == Ny_ - 1 && j != 0 && j != Nx_ - 1)
 			{
-				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
+				Bd_[i * Nx_ + j] = D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltay_ * deltay_);
 			}
 			if (j == 0 && i != 0 && i != Ny_ - 1)
 			{
 				if (procID_ == 0)
 				{
-					Bd_[i * Nx_ + j] =D_*functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) ;//+ D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] =D_*functions_->Dirichlet_Function0(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) ;//+ D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t, cas) / (deltay_ * deltay_);
 				}
 				else
 				{
@@ -179,7 +179,7 @@ void Problem::Construct_Bd(int cas, double t)
 			{
 				if (procID_ == Np_ - 1)
 				{
-					Bd_[i * Nx_ + j] = D_*functions_->Dirichlet_Function0(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) ;//+ D_ * functions_->Dirichlet_Function1(j * deltax_ + procID_ * (Lx_ - r_), i * deltay_, t, cas) / (deltay_ * deltay_);
+					Bd_[i * Nx_ + j] = D_*functions_->Dirichlet_Function0(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t+ deltat_, cas) / (deltax_ * deltax_) ;//+ D_ * functions_->Dirichlet_Function1(procID_ *deltax_ * (Nx_ + 1 - n_) + (j + 1) * deltax_, i * deltay_, t, cas) / (deltay_ * deltay_);
 				}
 				else
 				{

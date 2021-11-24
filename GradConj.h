@@ -28,7 +28,7 @@ public:
 	static double normMax(std::vector<double>);
 
 	void Solve(int, std::vector<double> &);
-
+	void PrecondSolve(int, std::vector<double> &);
 	void MPI_Solve(int, std::vector<double> &);
 };
 
