@@ -232,7 +232,7 @@ std::vector<double> Problem::getLeftStencil()
 	{
 		if (alpha_ != 0)
 		{
-			x[i] = sol_[i * Nx_ + n_] - sol_[i * Nx_ + n_ - 2] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ + n_ - 1];
+			x[i] = sol_[i * Nx_ + n_-1] - sol_[i * Nx_ + n_ - 3] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ + n_ - 2];
 		}
 		else
 		{
@@ -250,7 +250,7 @@ std::vector<double> Problem::getRightStencil()
 		if (alpha_ != 0)
 		{
 			//x[i - 1] = sol_[i * Nx_+Nx_-n_-1] - sol_[i * Nx_+Nx_+1-n_] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ +Nx_-n_];
-			x[i] = sol_[i * Nx_ + Nx_ - n_ - 1] - sol_[i * Nx_ + Nx_ + 1 - n_] + (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ + Nx_ - n_];
+			x[i] = sol_[i * Nx_ + Nx_ - n_] - sol_[i * Nx_ + Nx_ + 2 - n_] - (2 * beta_ * deltax_ / alpha_) * sol_[i * Nx_ + Nx_ +1 - n_];
 		}
 		else
 		{

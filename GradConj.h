@@ -27,8 +27,12 @@ public:
 
 	static double normMax(std::vector<double>);
 
+	static std::vector<std::vector<double>> Transpose(std::vector<std::vector<double>>);
+
 	void Solve(int, std::vector<double> &);
+
 	void PrecondSolve(int, std::vector<double> &);
+
 	void MPI_Solve(int, std::vector<double> &);
 };
 

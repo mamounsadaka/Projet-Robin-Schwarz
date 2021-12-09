@@ -260,13 +260,13 @@ int main(int argc, char **argv)
         MPI_Recv(&stencilL[0], Ny, MPI_DOUBLE, rank - 1, 0, MPI_COMM_WORLD, &status);
       }
     }
-    // Rajout des termes dépendent de la solution du meme proc
+    // Rajout des termes qui dependent de la solution du meme proc
     if (alpha != 0)
     {
-      for (int i = 1; i < Ny - 1; i++)
+      for (int i = 0; i < Ny ; i++)
       {
-        stencilL[i - 1] += y[i * Nx + 2] - (2. * beta * deltax / alpha) * y[i * Nx + 1];
-        stencilR[i - 1] += y[i * Nx + Nx - 3] - (2. * beta * deltax / alpha) * y[i * Nx + Nx - 2];
+        stencilL[i] += y[i * Nx + 1] + (2. * beta * deltax / alpha) * y[i * Nx];
+        stencilR[i] += y[i * Nx + Nx - 2] - (2. * beta * deltax / alpha) * y[i * Nx + Nx - 1];
       }
     }
     // Actualiser le nombre d'itérations

@@ -139,7 +139,18 @@ double GradConj::dot_product(std::vector<double> x, std::vector<double> y)
 		return z;
 	}
 };
-
+std::vector<std::vector<double>> GradConj::Transpose(std::vector<std::vector<double>> A)
+{
+	// std::vector<std::vector<double>> TA();
+	// for (int i = 0; i < A[1].size() ; i++)
+	// {
+	// 	for (int j = 0; j < A.size(); j++)
+	// 	{
+	// 		TA[i][j]=A[j][i];
+	// 	}	
+	// }
+	return A;
+}
 //gradient conjugué
 void GradConj::Solve(int state, std::vector<double> &u)
 {
