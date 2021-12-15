@@ -159,7 +159,7 @@ int main(int argc, char **argv)
   MPI_Comm_size(MPI_COMM_WORLD, &Np);
   Nx /= Np;
   // Conditons de recouvrement initiales
-  std::vector<double> stencil1(Ny, 0.0), stencil2(Ny, 0.0), stencilG(Ny, 0.0), stencilD(Ny, 0.0), trueSolG(Ny, 0.0), trueSolD(Ny, 0.0);
+  std::vector<double> stencil1(Ny, 0.0), stencil2(Ny, 0.0), stencilG(Ny, 0.0), stencilD(Ny, 0.0), laststencilG(Ny, 0.0), laststencilD(Ny, 0.0);
 
   ofstream SolFile, SpeedupFile;
   std::vector<double> y(Nx * Ny, 2.);
@@ -235,39 +235,31 @@ int main(int argc, char **argv)
       Converged = true;
       break;
     }
-    double a, b;
-    for (int i = 0; i < Ny; i++)
-    {
-      a = rank * deltax * (Nx + 1 - n);
-      b = (i + 1) * deltay;
-      trueSolG[i] = a * (1 - a) * b * (1 - b);
-      //cout << trueSolG[i] << endl;
-      a = rank * deltax * (Nx + 1 - n) + (Nx+1)*deltax;
-      trueSolD[i] = a * (1 - a) * b * (1 - b);
-    }
+
     err = 0;
     // calcul d'erreur dans le cas mixte
     if (alpha != 0)
     {
+      laststencilG = stencilG;
+      laststencilD = stencilD;
       for (int i = 0; i < Ny; i++)
       {
-        stencilG[i] = stencil1[i] + y[i * Nx + 1] + (2. * beta * deltax / alpha) * y[i * Nx];
+        stencilG[i] = stencil1[1] + y[i * Nx + 1] + (2. * beta * deltax / alpha) * y[i * Nx];
         stencilD[i] = stencil2[i] + y[i * Nx + Nx - 2] - (2. * beta * deltax / alpha) * y[i * Nx + Nx - 1];
       }
       if (rank != 0 && rank != Np - 1)
       {
-
-        err += max(mc.normMax(mc.sum(stencilG, trueSolG, -1)), mc.normMax(mc.sum(stencilD, trueSolD, -1)));
+        err += max(mc.normMax(mc.sum(stencilG, laststencilG, -1)), mc.normMax(mc.sum(stencilD, laststencilD, -1)));
       }
       else
       {
         if (rank == 0)
         {
-          err += mc.normMax(mc.sum(stencilD, trueSolD, -1));
+          err += mc.normMax(mc.sum(stencilD, laststencilD, -1));
         }
         else
         {
-          err += mc.normMax(mc.sum(stencilG, trueSolG, -1));
+          err += mc.normMax(mc.sum(stencilG, laststencilG, -1));
         }
       }
     }
@@ -305,17 +297,17 @@ int main(int argc, char **argv)
       if (rank != 0 && rank != Np - 1)
       {
 
-        err += max(mc.normMax(mc.sum(trueSolG, stencilL, -1)), mc.normMax(mc.sum(stencil2, stencilR, -1)));
+        err += max(mc.normMax(mc.sum(stencil1, stencilL, -1)), mc.normMax(mc.sum(stencil2, stencilR, -1)));
       }
       else
       {
         if (rank == 0)
         {
-          err += mc.normMax(mc.sum(trueSolD, stencilR, -1));
+          err += mc.normMax(mc.sum(stencil2, stencilR, -1));
         }
         else
         {
-          err += mc.normMax(mc.sum(trueSolG, stencilL, -1));
+          err += mc.normMax(mc.sum(stencil1, stencilL, -1));
         }
       }
     }
