@@ -25,7 +25,7 @@ private:
     std::vector<double> F_,Bd_;
     std::vector<std::vector<double>> A_;
     std::vector<double> sol_;
-    std::vector<double> stencil1_,stencil2_;
+    std::vector<double> stencil1_,stencil2_ , lastStencilL_ ,lastStencilR_;
 
 
 
@@ -54,7 +54,6 @@ public:
     double get_alpha() const {return alpha_;};
     double get_beta() const {return beta_;};
     std::vector<double> get_stencil1() const {return stencil1_ ;};
-
 };
 
 

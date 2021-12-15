@@ -11,6 +11,7 @@ Classe de construction des différnetes méthodes numériques pour les manipulat
 */
 
 //Macros de debuggage
+#define bloc std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
 #define debug std::cout << "step here" << std::endl;
 #define siz(a) std::cout << a.size() << std::endl;
 
@@ -60,18 +61,69 @@ GradConj::GradConj(std::vector<std::vector<double>> A, std::vector<double> b, in
 std::vector<double> GradConj::product(std::vector<std::vector<double>> A, std::vector<double> x, int Nx, int Ny)
 {
 	std::vector<double> y;
+	double s ;
 	bool a, b, c, d;
+	for (int i = 0; i < Nx * Ny; i++)
+	{
+		s=0;
+		a = (i > Nx - 1);
+		b = (i < Nx * (Ny - 1));
+		c = (i > 0);
+		d = (i < Nx * Ny - 1);
+		s+=A[0][i] * x[i];
+		if(a)
+		{
+			s+=A[4][i] * x[i - Nx];
+		}
+		if(b)
+		{
+			s+=A[2][i] * x[i + Nx];
+		}
+		if (c)
+		{
+			s+=A[3][i] * x[i - 1];
+		}
+		if(d)
+		{
+			s+= A[1][i] * x[i + 1];
+		}
+		y.push_back(s);
+	}
+	return y;
+}
+std::vector<double> GradConj::Tproduct(std::vector<std::vector<double>> A, std::vector<double> x, int Nx, int Ny)
+{
+	std::vector<double> y;
+	bool a, b, c, d;
+	double s ;
 	for (int i = 0; i < Nx * Ny; i++)
 	{
 		a = (i > Nx - 1);
 		b = (i < Nx * (Ny - 1));
 		c = (i > 0);
 		d = (i < Nx * Ny - 1);
-		y.push_back(A[0][i] * x[i] + d * A[1][i] * x[i + 1] + b * A[2][i] * x[i + Nx] + c * A[1][i - 1] * x[i - 1] + a * A[2][i - Nx] * x[i - Nx]);
+		s=0;
+		s+=A[0][i] * x[i];
+		if(a)
+		{
+			s+=A[2][i-Nx] * x[i - Nx];
+		}
+		if(b)
+		{
+			s+=A[4][i+Nx] * x[i + Nx];
+		}
+		if (c)
+		{
+			s+=A[1][i-1] * x[i - 1];
+		}
+		if(d)
+		{
+			s+=A[3][i+1] * x[i + 1];
+		}
+		y.push_back(s);
 	}
 	return y;
 }
-
 std::vector<double> GradConj::sum(std::vector<double> x, std::vector<double> y, int sign) //-1 ou 1
 {
 	int n = x.size();
@@ -139,18 +191,7 @@ double GradConj::dot_product(std::vector<double> x, std::vector<double> y)
 		return z;
 	}
 };
-std::vector<std::vector<double>> GradConj::Transpose(std::vector<std::vector<double>> A)
-{
-	// std::vector<std::vector<double>> TA();
-	// for (int i = 0; i < A[1].size() ; i++)
-	// {
-	// 	for (int j = 0; j < A.size(); j++)
-	// 	{
-	// 		TA[i][j]=A[j][i];
-	// 	}	
-	// }
-	return A;
-}
+
 //gradient conjugué
 void GradConj::Solve(int state, std::vector<double> &u)
 {
@@ -165,7 +206,8 @@ void GradConj::Solve(int state, std::vector<double> &u)
 		x[i] = 0.;
 	}
 	temp = GradConj::product(A, x, Nx_, Ny_);
-	r = GradConj::sum(b, temp, -1);
+	temp = GradConj::Tproduct(A, temp, Nx_, Ny_);
+	r = GradConj::sum(GradConj::Tproduct(A,b,Nx_,Ny_), temp, -1);
 	p = r;
 	double alpha;
 	double gamma;
@@ -179,6 +221,7 @@ void GradConj::Solve(int state, std::vector<double> &u)
 	while (j <= k_)
 	{
 		z = GradConj::product(A, p, Nx_, Ny_);
+		z= GradConj::Tproduct(A, z, Nx_, Ny_);
 		alpha = (GradConj::dot_product(r, r)) / (GradConj::dot_product(z, p));
 		xSuivant = GradConj::sum(x, GradConj::prod_scal(p, alpha), 1);
 		rSuivant = GradConj::sum(r, GradConj::prod_scal(z, alpha), -1);
@@ -189,13 +232,17 @@ void GradConj::Solve(int state, std::vector<double> &u)
 		beta = GradConj::norm(r);
 		nb_iterat_ = nb_iterat_ + 1;
 		j++;
+		//cout << j<< endl;
 		if (beta < pow(10, -10))
 		{
 			break;
 		}
 	}
+	bloc
+	cout << j << endl;
+	bloc
+	//cout << "finished" << endl;
 	//cout << nb_iterat_ << endl;
-
 	//cout << "----------------Gradient conjugué------------------------" << endl;
 	u.resize(n);
 	u = x;

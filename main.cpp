@@ -13,12 +13,12 @@
 
 using namespace std;
 
-//macros pour la présentation et le debuggage
+// macros pour la présentation et le debuggage
 
 #define bloc std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
 #define SHOW(a) std::cout << #a << std::endl;
 
-//Fonction de réprensetation de vecteurs de la librairie vector.h
+// Fonction de réprensetation de vecteurs de la librairie vector.h
 
 void print_vector(std::vector<double> x)
 {
@@ -33,7 +33,7 @@ void print_vector(std::vector<double> x)
   cout << "----------------------------------" << endl;
 }
 
-//Fonctions de représentation de matrice (vecteur de vecteurs) de forme abrégée (liste de vecteurs) ou verbose (matrice carrée)
+// Fonctions de représentation de matrice (vecteur de vecteurs) de forme abrégée (liste de vecteurs) ou verbose (matrice carrée)
 
 void print_matrix(std::vector<std::vector<double>> A)
 {
@@ -70,7 +70,7 @@ void print_matrix_verbose(std::vector<std::vector<double>> A)
   }
   else
   {
-    //Retrouvant Nx et Ny
+    // Retrouvant Nx et Ny
     int Ny = A[0].size() / (A[0].size() - A[2].size());
     int Nx = A[0].size() / Ny;
     cout << Nx << " " << Ny << endl;
@@ -100,7 +100,7 @@ void print_matrix_verbose(std::vector<std::vector<double>> A)
   }
 }
 
-//fonctions d'équilibrage de charges
+// fonctions d'équilibrage de charges
 vector<int> charge(int n, int Np, int me)
 {
   int limite = n - Np * (n / Np);
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
     exit(0);
   }
 
-  //Récuperation le nom du fichier d'entrée
+  // Récuperation le nom du fichier d'entrée
   const string data_file_name = argv[1];
   bloc
           cout
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
   Rf->Read_data_file();
   // ------------------------------------------------------------
 
-  //Récupération des données du problème
+  // Récupération des données du problème
   double Lx = Rf->Get_Lx(), Ly = Rf->Get_Ly(), D = Rf->Get_D(), deltat = Rf->Get_dt(), tf = Rf->Get_tfinal(), alpha = Rf->Get_alpha(), beta = Rf->Get_beta();
   int Nx = Rf->Get_Nx(), Ny = Rf->Get_Ny(), Nt = 4, n = Rf->Get_n(), cas = Rf->Get_cas();
   // Vérification de la suffisance des conditions de bords
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
     std::cout << " conditions de bords insuffisantes" << endl;
     return 0;
   }
-  //Nt ou delta t jouent le meme role
+  // Nt ou delta t jouent le meme role
   int nb_iter = 0;
   // Initialisation
   MPI_Init(&argc, &argv);
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
   MPI_Comm_size(MPI_COMM_WORLD, &Np);
   Nx /= Np;
   // Conditons de recouvrement initiales
-  std::vector<double> stencil1(Ny, 0.0), stencil2(Ny, 0.0);
+  std::vector<double> stencil1(Ny, 0.0), stencil2(Ny, 0.0), stencilG(Ny, 0.0), stencilD(Ny, 0.0), trueSolG(Ny, 0.0), trueSolD(Ny, 0.0);
 
   ofstream SolFile, SpeedupFile;
   std::vector<double> y(Nx * Ny, 2.);
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
     nbegin = 1;
     nend = Nx;
   }
-  //for (n = nbegin; n < nend; n++)
+  // for (n = nbegin; n < nend; n++)
   //{
   double t1 = MPI_Wtime();
   double domXsize = Lx / (Np - n * (Np - 1.) / (Nx + 1.));
@@ -202,17 +202,19 @@ int main(int argc, char **argv)
   std::vector<std::vector<double>> B(3);
   std::vector<double> g(Nx * Ny, 4.);
   GradConj mc(B, g, Nx, Ny);
+  double err;
   // Réinitialisation du nombre d'itérations
   nb_iter = 0;
   // Boucle de convergence de la méthode de recouvrement
   while (!Converged)
   {
-    //Initialisation des différentes classes nécessaires à la résolution dans la classe problem
+    // Initialisation des différentes classes nécessaires à la résolution dans la classe problem
     BC bc = BC(Nx, Ny, domXsize, Ly);
     Problem P = Problem(&bc, Nx, Ny, Nt, domXsize, Ly, deltat, rank, Np, n, recouv, Lx, alpha, beta, stencil1, stencil2);
-    //Résolution du problème cas
+    // Résolution du problème cas
     P.Solve_problem(cas, tf);
     y = P.get_sol();
+
     // Exception du  cas à 1 proc
     if (Np == 1)
     {
@@ -232,6 +234,42 @@ int main(int argc, char **argv)
       //   SolFile.close();
       Converged = true;
       break;
+    }
+    double a, b;
+    for (int i = 0; i < Ny; i++)
+    {
+      a = rank * deltax * (Nx + 1 - n);
+      b = (i + 1) * deltay;
+      trueSolG[i] = a * (1 - a) * b * (1 - b);
+      //cout << trueSolG[i] << endl;
+      a = rank * deltax * (Nx + 1 - n) + (Nx+1)*deltax;
+      trueSolD[i] = a * (1 - a) * b * (1 - b);
+    }
+    err = 0;
+    // calcul d'erreur dans le cas mixte
+    if (alpha != 0)
+    {
+      for (int i = 0; i < Ny; i++)
+      {
+        stencilG[i] = stencil1[i] + y[i * Nx + 1] + (2. * beta * deltax / alpha) * y[i * Nx];
+        stencilD[i] = stencil2[i] + y[i * Nx + Nx - 2] - (2. * beta * deltax / alpha) * y[i * Nx + Nx - 1];
+      }
+      if (rank != 0 && rank != Np - 1)
+      {
+
+        err += max(mc.normMax(mc.sum(stencilG, trueSolG, -1)), mc.normMax(mc.sum(stencilD, trueSolD, -1)));
+      }
+      else
+      {
+        if (rank == 0)
+        {
+          err += mc.normMax(mc.sum(stencilD, trueSolD, -1));
+        }
+        else
+        {
+          err += mc.normMax(mc.sum(stencilG, trueSolG, -1));
+        }
+      }
     }
     // construction des stencils
     std::vector<double> stencilL = P.getLeftStencil();
@@ -260,47 +298,42 @@ int main(int argc, char **argv)
         MPI_Recv(&stencilL[0], Ny, MPI_DOUBLE, rank - 1, 0, MPI_COMM_WORLD, &status);
       }
     }
-    // Rajout des termes qui dependent de la solution du meme proc
-    if (alpha != 0)
+
+    // calcul d'erreur dans le cas dirichlet
+    if (alpha == 0)
     {
-      for (int i = 0; i < Ny ; i++)
+      if (rank != 0 && rank != Np - 1)
       {
-        stencilL[i] += y[i * Nx + 1] + (2. * beta * deltax / alpha) * y[i * Nx];
-        stencilR[i] += y[i * Nx + Nx - 2] - (2. * beta * deltax / alpha) * y[i * Nx + Nx - 1];
+
+        err += max(mc.normMax(mc.sum(trueSolG, stencilL, -1)), mc.normMax(mc.sum(stencil2, stencilR, -1)));
+      }
+      else
+      {
+        if (rank == 0)
+        {
+          err += mc.normMax(mc.sum(trueSolD, stencilR, -1));
+        }
+        else
+        {
+          err += mc.normMax(mc.sum(trueSolG, stencilL, -1));
+        }
       }
     }
-    // Actualiser le nombre d'itérations
     nb_iter++;
-    //vérification de la condition de l'erreur
-    double err = 0;
-    if (rank != 0 && rank != Np - 1)
+    // vérification de la condition de convergence
+    MPI_Allreduce(&err, &err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    if (err < pow(10, -8) && nb_iter > 1)
     {
-      err += max(mc.normMax(mc.sum(stencil1, stencilL, -1)), mc.normMax(mc.sum(stencil2, stencilR, -1)));
+    std:
+      cout << " le nombre d'itérations pour converger est de " << nb_iter << endl;
+      Converged = true;
+      continue;
     }
     else
     {
-      if (rank == 0)
-      {
-        err += mc.normMax(mc.sum(stencil2, stencilR, -1));
-      }
-      else
-      {
-        err += mc.normMax(mc.sum(stencil1, stencilL, -1));
-      }
-      //}
-      MPI_Allreduce(&err, &err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-      if (err < pow(10, -8))
-      {
-      std:
-        cout << " le nombre d'itérations pour converger est de " << nb_iter << endl;
-        Converged = true;
-      }
-      else
-      {
-        std::cout << "on est à l'iteration " << nb_iter << "avec une erreur de " << err << endl;
-        stencil1 = stencilL;
-        stencil2 = stencilR;
-      }
+      std::cout << "on est à l'iteration " << nb_iter << "avec une erreur de " << err << endl;
+      stencil1 = stencilL;
+      stencil2 = stencilR;
     }
   }
 
@@ -315,15 +348,15 @@ int main(int argc, char **argv)
   for (int i = 0; i < Ny; i++)
   {
 
-    //for (int k = rank * (n / Np); k < Nx - (Np - rank - 1) * (n / Np); k++)
+    // for (int k = rank * (n / Np); k < Nx - (Np - rank - 1) * (n / Np); k++)
     for (int k = 0; k < Nx; k++)
     {
       double a = rank * deltax * (Nx + 1 - n) + (k + 1) * deltax, b = (i + 1) * deltay;
-      SolFile << a << " " << b << " " << y[i * Nx + k] << endl; //abs((y[i * Nx + k] - a * (1 - a) * b * (1 - b)) / (a * (1 - a) * b * (1 - b))) << endl;
+      SolFile << a << " " << b << " " << y[i * Nx + k] << endl; // abs((y[i * Nx + k] - a * (1 - a) * b * (1 - b)) / (a * (1 - a) * b * (1 - b))) << endl;
     }
   }
   SolFile.close();
-  //Affichage du résultat
+  // Affichage du résultat
   std::cout << "-------------------------------------------------" << std::endl;
   cout << "Cela a pris " << s << " seconds"
        << "dans le parallèl " << endl;

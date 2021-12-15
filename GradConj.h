@@ -17,6 +17,8 @@ public:
 
 	static std::vector<double> product(std::vector<std::vector<double>>, std::vector<double>, int, int);
 
+	static std::vector<double> Tproduct(std::vector<std::vector<double>>, std::vector<double>, int, int);
+
 	static std::vector<double> prod_scal(std::vector<double>, double);
 
 	static double dot_product(std::vector<double>, std::vector<double>);
