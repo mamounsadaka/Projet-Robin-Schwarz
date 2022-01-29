@@ -314,7 +314,7 @@ int main(int argc, char **argv)
     nb_iter++;
     // vérification de la condition de convergence
     MPI_Allreduce(&err, &err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-    if (err < pow(10, -8) && nb_iter > 1)
+    if (err < pow(10, -6) && nb_iter > 1)
     {
     std:
       cout << " le nombre d'itérations pour converger est de " << nb_iter << endl;

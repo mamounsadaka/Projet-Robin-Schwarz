@@ -206,8 +206,61 @@ void GradConj::Solve(int state, std::vector<double> &u)
 		x[i] = 0.;
 	}
 	temp = GradConj::product(A, x, Nx_, Ny_);
+	// temp = GradConj::Tproduct(A, temp, Nx_, Ny_);
+	r = GradConj::sum(b, temp, -1);
+	// r = GradConj::sum(GradConj::Tproduct(A, b, Nx_, Ny_), temp, -1);
+	p = r;
+	double alpha;
+	double gamma;
+	std::vector<double> rSuivant(n);
+	std::vector<double> xSuivant(n);
+	std::vector<double> z(n);
+	int j = 0;
+	double beta = GradConj::norm(r);
+	int nb_iterat_ = 0;
+
+	while (j <= k_)
+	{
+		z = GradConj::product(A, p, Nx_, Ny_);
+		// z= GradConj::Tproduct(A, z, Nx_, Ny_);
+		alpha = (GradConj::dot_product(r, r)) / (GradConj::dot_product(z, p));
+		xSuivant = GradConj::sum(x, GradConj::prod_scal(p, alpha), 1);
+		rSuivant = GradConj::sum(r, GradConj::prod_scal(z, alpha), -1);
+		gamma = GradConj::dot_product(rSuivant, rSuivant) / GradConj::dot_product(r, r);
+		p = GradConj::sum(rSuivant, prod_scal(p, gamma), 1);
+		x = xSuivant;
+		r = rSuivant;
+		beta = GradConj::norm(r);
+		nb_iterat_ = nb_iterat_ + 1;
+		j++;
+		//cout << j<< endl;
+		if (beta < pow(10, -10))
+		{
+			break;
+		}
+	}
+	//cout << "finished" << endl;
+	//cout << nb_iterat_ << endl;
+	//cout << "----------------Gradient conjugué------------------------" << endl;
+	u.resize(n);
+	u = x;
+}
+void GradConj::TSolve(int state, std::vector<double> &u)
+{
+	int n = Nx_ * Ny_;
+	k_ = state;
+	//cout << "le nombre d'itérations d'entrée " << k_ << endl;
+	std::vector<std::vector<double>> A(A_);
+	std::vector<double> r(n), b(b_), p(n), temp(n);
+	std::vector<double> x(n);
+	for (int i = 0; i < n; i++)
+	{
+		x[i] = 0.;
+	}
+	temp = GradConj::product(A, x, Nx_, Ny_);
 	temp = GradConj::Tproduct(A, temp, Nx_, Ny_);
-	r = GradConj::sum(GradConj::Tproduct(A,b,Nx_,Ny_), temp, -1);
+	// r = GradConj::sum(b, temp, -1);
+	r = GradConj::sum(GradConj::Tproduct(A, b, Nx_, Ny_), temp, -1);
 	p = r;
 	double alpha;
 	double gamma;
@@ -238,15 +291,12 @@ void GradConj::Solve(int state, std::vector<double> &u)
 			break;
 		}
 	}
-	bloc
-	cout << j << endl;
-	bloc
+
 	//cout << "finished" << endl;
 	//cout << nb_iterat_ << endl;
 	//cout << "----------------Gradient conjugué------------------------" << endl;
 	u.resize(n);
 	u = x;
 }
-
 #define _GC_CPP
 #endif

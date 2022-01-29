@@ -2,7 +2,7 @@
 
 # Time parameters
 tf
-0.2
+1.
 dt
 0.1
 
@@ -10,9 +10,9 @@ dt
 D
 1.
 
-#cas
+#cas de 4 à 6
 cas
-4
+6
 
 
 #geometry parameters
@@ -26,9 +26,9 @@ Ly
 1.
 # nb de mailles contenue dans le recouvrement
 n
-20
+29
 # paramètres de conditions Neumann-Dirichlet
 alpha
-1.
+0.
 beta
-100.
+1.

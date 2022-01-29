@@ -10,8 +10,8 @@
     |   make par                                      |
     |  >Execute // code:                              |
     |   make run_par N=Number of procs                |
-    |--> 3D plot: load "cmd_file_line"                |
-    |--> Heat map: load "plot.txt"                    |
+    |-> datafile.txt contient tous les paramètres     |
+    |                                                 |
     |_______________________________________________  |
 
 

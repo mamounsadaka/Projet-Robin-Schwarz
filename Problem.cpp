@@ -296,7 +296,13 @@ void Problem::Solve_problem(int cas, double tf)
 		S1 = GradConj::prod_scal(Bd_, deltat_);
 		S = GradConj::sum(F_, S1, 1);
 		GradConj gc = GradConj(A_, S, Nx_, Ny_);
-		gc.Solve(nb_iter, sol_);
+		if(alpha_==0)
+		{
+			gc.Solve(nb_iter, sol_);
+		}
+		else {
+			gc.TSolve(nb_iter, sol_);
+		}
 		t += deltat_;
 	}
 }
