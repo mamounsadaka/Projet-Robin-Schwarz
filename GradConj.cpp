@@ -169,7 +169,10 @@ double GradConj::normMax(std::vector<double> x)
 	double last = 0.;
 	for (int i = 0; i < n; i++)
 	{
-		last = (abs(x[i])>last) ? abs(x[i]) : last ;
+		if(abs(x[i])>last)
+		{
+			last=abs(x[i]);
+		}
 	}
 	return last;
 }
